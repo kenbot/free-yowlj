@@ -14,5 +14,5 @@ fork := true
 fork in Test := false
 
 initialCommands := """
-  import kenbot.free._;
+  import yowfree._;
 """

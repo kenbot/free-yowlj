@@ -24,18 +24,28 @@ case class Return[F[_], +A](a: A) extends Free[F, A] {
    * Implement flatMap for Return. 
    */
   override def flatMap[B](f: A => Free[F, B])
-                         (implicit F: Functor[F]): Free[F, B] = f(a)
+                         (implicit F: Functor[F]): Free[F, B] = ???
 }
 
 
 
-case class Suspend[F[_], A](functor: F[Free[F, A]]) extends Free[F, A] {
+case class Suspend[F[_], A](ffa: F[Free[F, A]]) extends Free[F, A] {
   /**
    * Exercise 1b.
    * Implement flatMap for Suspend. 
+   * 
+   * Hint: look at the type signatures!
+   * You have only:
+   *  - this: Free[F,A]
+   *  - ffa: F[Free[F,A]]
+   *  - map: F[Free[F,A]] => (Free[F,A] => B) => F[B]
+   *  - flatMap: Free[F,A] => (A => Free[F, B]) => Free[F, B]
+   *  - Suspend: F[Free[F,A]] => Free[F,A]
+   *  - Return: A => Free[F,A]
+   * 
    */
   override def flatMap[B](f: A => Free[F, B])
-                         (implicit F: Functor[F]): Free[F, B] = Suspend(functor map (_ flatMap f))
+                         (implicit F: Functor[F]): Free[F, B] = ???
 }
 
 object Free {

@@ -37,7 +37,7 @@ object Instances {
     Arbitrary(genFree[F,A])
     
   implicit def arbFreeList[A: Arbitrary]: Arbitrary[FreeList[A]] = arbitraryFree[List, A](
-      implicitly[ Arbitrary[List[FreeList[A]]] ],   //arbitraryFunctor[List, Free[List, A]], 
+      implicitly[ Arbitrary[List[FreeList[A]]] ],  
       implicitly[ Arbitrary[A] ])
   
 }
@@ -46,14 +46,53 @@ class Exercise1Test extends FunSpec with ShouldMatchers {
 
   import Instances._
   
-  describe("Free.flatMap") {
-    it("should obey monad laws") {
-      monad.laws[FreeList].check
-      //monad.laws[FreeBox].check
-      //monad.laws[FreeADT].check
+  describe("Return.flatMap") {
+    val ret1 = Return[List, Int](1)
+    
+    it("should behave as expected given a Return") {
+      ret1.flatMap(a => Return(a + 1)) should equal (Return(2))
+    }
+    
+    it("should behave as expected given a Suspend") { 
+      ret1.flatMap(a => 
+        Suspend[List, Int](List(
+            Return(a + 1), 
+            Return(a + 2)))) should equal (
+                Suspend[List, Int](List(
+                    Return(2), 
+                    Return(3))))
     }
   }
   
+  describe("Suspend.flatMap") {
+    val suspendList = Suspend[List, Int](List(
+        Return(1), 
+        Return(2), 
+        Return(3)))
+        
+    it("should behave as expected given a Return") {
+      
+      suspendList.flatMap(a => Return(a + 1)) should equal (
+          Suspend[List, Int](List(
+              Return(2), 
+              Return(3), 
+              Return(4))))
+    }
+    
+    it("should behave as expected given a Suspend") {
+
+      suspendList.flatMap(a => 
+        Suspend[List, Int](List(
+            Return(a + 1), 
+            Return(a + 2)))) should equal (
+                Suspend[List, Int](List(
+                    Suspend[List, Int](List(Return(2), Return(3))), 
+                    Suspend[List, Int](List(Return(3), Return(4))), 
+                    Suspend[List, Int](List(Return(4), Return(5))))))
+    }
+  }
+    
+
   
 }
 
