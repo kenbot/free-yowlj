@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
 
 fork := true
 
-fork in Test := false
+fork in Test := true
 
 initialCommands := """
   import yowfree._;

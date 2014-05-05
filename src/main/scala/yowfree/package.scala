@@ -20,7 +20,11 @@ package yowfree {
 package object yowfree {
   import scalaz.{Functor, Monad}
   
-
+  type ??? = Nothing
+  
+  implicit val function0Functor: Functor[Function0] = new Functor[Function0] {
+    override def map[A,B](f0: Function0[A])(f: A => B): Function0[B] = { () => f(f0()) }
+  }
   
   implicit val adtFunctor: Functor[ADT] = new Functor[ADT] {
     override def map[A,B](adt: ADT[A])(f: A => B): ADT[B] = adt map f
