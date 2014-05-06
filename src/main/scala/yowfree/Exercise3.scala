@@ -31,8 +31,8 @@ case class Value(value: String) {
  * How will the "Next" type parameter be used?
  * 
  */
-case class Put[Next](key: Key, value: Value, next: Next) extends KVS[Next] // implement me
 case class Get[Next](key: Key, nextF: Value => Next) extends KVS[Next] // implement me
+case class Put[Next](key: Key, value: Value, next: Next) extends KVS[Next] // implement me
 case class Delete[Next](key: Key, next: Next) extends KVS[Next] // implement me
 
 // ADT translation of fantasy API
@@ -41,7 +41,11 @@ sealed trait KVS[+Next] {
   /**
    * Exercise 3b. Implement map, so KVS can be a functor.
    */
-  def map[B](f: Next => B): KVS[B] = ???
+  def map[B](f: Next => B): KVS[B] = this match {
+    case Get(key, nextF) => Get(key, nextF andThen f)
+    case Put(key, value, next) => Put(key, value, f(next))
+    case Delete(key, next) => Delete(key, f(next))
+  }
 }
 
 object KVS {
@@ -59,11 +63,11 @@ object KVS {
    *  KVS instances lifted into the Free monad.
    *  
    */
-  def put(key: Key, value: Value): Script[Unit] = liftF(???)
+  def get(key: Key): Script[Value] = liftF(Get(key, identity))
   
-  def get(key: Key): Script[Value] = ???
+  def put(key: Key, value: Value): Script[Unit] = liftF(Put(key, value, ()))
   
-  def delete(key: Key): Script[Unit] = ???
+  def delete(key: Key): Script[Unit] = liftF(Delete(key, ()))
   
   
   // Now we can write pure scripts using free monads!  Naturally, we'll exercise great
@@ -107,7 +111,7 @@ object KVS {
    *  
    * Hint: Pattern matching
    */
-  def interpretPure(script: Script[Unit], dataStore: Map[Key, Value]): Map[Key, Value] = script match {
+  def interpretPure[A](script: Script[A], dataStore: Map[Key, Value]): Map[Key, Value] = script match {
     case Suspend(Get(key, nextF)) => interpretPure(nextF(dataStore(key)), dataStore)
     case Suspend(Put(key, value, next)) => interpretPure(next, dataStore + (key -> value))
     case Suspend(Delete(key, next)) => interpretPure(next, dataStore - key)
@@ -123,17 +127,19 @@ object KVS {
    * 
    * Get, Put and Delete should all do what you what expect.
    */
-  def interpretImpure(script: Script[Unit], dataStore: mutable.Map[Key, Value]): Unit = {
-    def interpretKVS[A](kvs: KVS[Script[A]]): Script[A] = kvs match {
+  def interpretImpure[A](script: Script[A], dataStore: mutable.Map[Key, Value]): Unit = {
+    def interpretKVS[B](kvs: KVS[Script[B]]): Script[B] = kvs match {
       case Get(key, onResult) => onResult(dataStore(key))
       case Put(key, value, next) => dataStore += (key -> value); next
       case Delete(key, next) => dataStore -= key; next
     }
     
-    def interpretFree[A](script: Script[KVS[Script[A]]]): Unit = script match {
+    def interpretFree[B](script: Script[B]): Unit = script match {
       case Suspend(kvs) => interpretFree(interpretKVS(kvs))
       case Return(_) => ()
     }
+    
+    interpretFree(script)
   }
 }
 

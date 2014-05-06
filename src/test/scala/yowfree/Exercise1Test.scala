@@ -1,17 +1,9 @@
 package yowfree
 
+import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest._
-import scalaz.scalacheck.ScalazProperties._
-import scalaz.scalacheck.ScalazArbitrary._
-import scalaz.scalacheck.ScalaCheckBinding._
-import scalaz._
-import Scalaz._
-import scalaz.{Free => _}
-import org.scalacheck.Gen
-import org.scalacheck.Arbitrary
-import scalaz.Equal
-import Arbitrary.arbitrary
+
+import scalaz.Scalaz._
 
 class Exercise1Test extends FunSpec with ShouldMatchers {
 

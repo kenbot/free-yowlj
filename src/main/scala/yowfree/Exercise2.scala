@@ -1,7 +1,7 @@
 package yowfree
 
 import scala.annotation.tailrec
-
+import Trampolines._
 
 object ListAppendNaughtyRecursion extends ListAppendProgram {
   
@@ -13,11 +13,11 @@ object ListAppendNaughtyRecursion extends ListAppendProgram {
     case head :: tail => head :: listAppend(tail, list2)
   }
   
-  def runTest[A](list1: List[A], list2: List[A]): List[A] = listAppend(list1, list2)
+  def runSolution[A](list1: List[A], list2: List[A]): List[A] = listAppend(list1, list2)
 }
 
 
-trait Trampolines {
+object Trampolines {
   
   /**
    * A Trampoline[A], which lets us recurse on the heap rather than the stack, is just
@@ -52,21 +52,21 @@ object ListAppendRighteousTrampoline extends ListAppendProgram {
     case head :: tail => Suspend(() => listAppend(tail, list2).map(head :: _))
   }
 
-  def runTest[A](list1: List[A], list2: List[A]): List[A] = runTrampoline(listAppend(list1, list2))
+  def runSolution[A](list1: List[A], list2: List[A]): List[A] = runTrampoline(listAppend(list1, list2))
 }
 
 
 
-trait ListAppendProgram extends Trampolines {
+trait ListAppendProgram {
   
-  def runTest[A](list1: List[A], list2: List[A]): List[A]
+  def runSolution[A](list1: List[A], list2: List[A]): List[A]
   
   val list1 = (1 to 9999).toList
   val list2 = (10000 to 20000).toList
   
   def main(args: Array[String]): Unit = {
     println("Starting")
-    val result = runTest(list1, list2)
+    val result = runSolution(list1, list2)
     println(s"Appended paths: ${result.take(5).mkString(", ")}... and many more")
   }
 
