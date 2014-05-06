@@ -30,11 +30,8 @@ object Trampolines {
    * 
    * Write an interpreter for trampolines. 
    */
-  @tailrec
-  final def runTrampoline[A](trampoline: Trampoline[A]): A = trampoline match {
-    case Suspend(f0) => runTrampoline(f0())
-    case Return(a) => a
-  }
+  //@tailrec
+  final def runTrampoline[A](trampoline: Trampoline[A]): A = ???
 }
 
 
@@ -47,10 +44,7 @@ object ListAppendRighteousTrampoline extends ListAppendProgram {
    * This should get the same result, but not blow the stack.
    * 
    */
-  def listAppend[A](list1: List[A], list2: List[A]): Trampoline[List[A]] = list1 match {
-    case Nil => Return(list2)
-    case head :: tail => Suspend(() => listAppend(tail, list2).map(head :: _))
-  }
+  def listAppend[A](list1: List[A], list2: List[A]): Trampoline[List[A]] = ???
 
   def runSolution[A](list1: List[A], list2: List[A]): List[A] = runTrampoline(listAppend(list1, list2))
 }

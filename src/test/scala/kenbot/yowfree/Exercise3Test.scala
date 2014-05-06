@@ -9,13 +9,6 @@ import KVS._
 
 class Exercise3Test extends FunSpec with ShouldMatchers {
 
-  def testInterpreter(script: Script[Unit], dataStore: Map[Key, Value]): Map[Key, Value] = script match {
-    case Suspend(Get(key, nextF)) => interpretPure(nextF(dataStore(key)), dataStore)
-    case Suspend(Put(key, value, next)) => interpretPure(next, dataStore + (key -> value))
-    case Suspend(Delete(key, next)) => interpretPure(next, dataStore - key)
-    case Return(_) => dataStore 
-  }
-  
   describe("Pure interpreter") {
     it("should interpret Put correctly") {
       val start = Map[Key, Value]()

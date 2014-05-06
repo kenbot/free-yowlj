@@ -25,14 +25,14 @@ trait TankAIMixin {
    * 
    * Implement loop, such that the given AI script is repeated forever.
    */
-  def loop(ai: AI[Unit]): AI[Unit] = ai >> loop(ai)
+  def loop(ai: AI[Unit]): AI[Unit] = ???
   
   /**
    * Exercise 4b. 
    * 
    * Implement when, which conditionally executes the given script.
    */
-  def when(b: Boolean)(ai: => AI[Unit]): AI[Unit] = if (b) ai else Return(())
+  def when(b: Boolean)(ai: => AI[Unit]): AI[Unit] = ???
   
   final def unless(b: Boolean)(ai: => AI[Unit]): AI[Unit] = when(!b)(ai)
   
@@ -49,10 +49,7 @@ trait TankAIMixin {
    * 
    */
   implicit class AIOps[A](ai: AI[A]) {
-    def *(times: Int): AI[A] = {
-      require(times >= 1)
-      if (times == 1) ai else ai >> this * (times - 1)
-    }
+    def *(times: Int): AI[A] = ???
   }
   
   /**
