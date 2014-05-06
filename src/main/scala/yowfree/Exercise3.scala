@@ -19,7 +19,8 @@ case class Value(value: String) {
 }
 
 /**
- * Exercise 3a.
+ * Exercise 3a. Instruction set
+ * 
  * Implement ADT cases as subtypes of KVS, based on the following commands:
  * 
  * def put(key: Key, value: Value): Unit
@@ -52,7 +53,7 @@ object KVS {
   
   
   /** 
-   *  Exercise 3c. 
+   *  Exercise 3c. Lifting functions
    *  
    *  Implement functions that take regular input, but return
    *  KVS instances lifted into the Free monad.
@@ -72,15 +73,15 @@ object KVS {
   val larceny: Script[Unit] = for {
     accountId <- get(Key("swiss-bank-account-id"))
     accountKey = Key(accountId.value)
-    amount <- get(accountKey)                //  Combine these 2 lines, using "modify".
-    _ <- put(accountKey, amount + 1000000)   // 
+    amount <- get(accountKey)                //  <-- 3d. Combine these 2 lines, using "modify".
+    _ <- put(accountKey, amount + 1000000)   //  <-- 
     _ <- put(Key("bermuda-airport"), Value("getaway car"))
     _ <- delete(Key("tax-records"))
   } yield ()
   
   
   /**
-   * Exercise 3d. 
+   * Exercise 3d. Composing operations
    * 
    * It's a bit tiresome to write get-and-put every time we want to 
    * steal large sums of money and skip the country.
@@ -97,7 +98,7 @@ object KVS {
   
   
   /**
-   * Exercise 3e.
+   * Exercise 3e.  Pure interpreter
    * 
    * Write an interpreter, that recursively accumulates results into the immutable Map, returning the 
    * final result. 
@@ -115,7 +116,7 @@ object KVS {
 
   
   /**
-   * Exercise 3f.
+   * Exercise 3f. Effectful interpreter
    * 
    * Write an interpreter, that reads each instruction in the script and 
    * mutates the given data store in place, returning unit.

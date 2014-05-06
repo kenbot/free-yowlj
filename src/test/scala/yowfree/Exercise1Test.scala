@@ -13,39 +13,8 @@ import org.scalacheck.Arbitrary
 import scalaz.Equal
 import Arbitrary.arbitrary
 
-object Instances {
-
-  type FreeBox[A] = Free[Box, A]
-  type FreeList[A] = Free[List, A]
-  type FreeADT[A] = Free[ADT, A]
-  
-
-  implicit def freeEqual[F[_], A]: Equal[Free[F,A]] = Equal.equalA[Free[F,A]]
-  implicit def boxEqual[A]: Equal[Box[A]] = Equal.equalA[Box[A]]
-  implicit def adtEqual[A: Equal]: Equal[ADT[A]] = Equal.equalA[ADT[A]]
-  
-  def genSuspend[F[_], A](implicit arbF: Arbitrary[F[Free[F,A]]]): Gen[Free[F,A]] = 
-    arbF.arbitrary map Suspend.apply
-  
-  def genReturn[F[_], A: Arbitrary]: Gen[Free[F,A]] = 
-    Arbitrary.arbitrary[A] map Return.apply
-    
-  def genFree[F[_], A: Arbitrary](implicit arbF: Arbitrary[F[Free[F,A]]]) = 
-    Gen.oneOf(genSuspend[F,A], genReturn[F, A])
-  
-  def arbitraryFree[F[_], A](implicit arbF: Arbitrary[F[Free[F,A]]], arbA: Arbitrary[A]): Arbitrary[Free[F,A]] = 
-    Arbitrary(genFree[F,A])
-    
-  implicit def arbFreeList[A: Arbitrary]: Arbitrary[FreeList[A]] = arbitraryFree[List, A](
-      implicitly[ Arbitrary[List[FreeList[A]]] ],  
-      implicitly[ Arbitrary[A] ])
-  
-}
-
 class Exercise1Test extends FunSpec with ShouldMatchers {
 
-  import Instances._
-  
   describe("Return") {
     val ret1 = Return[List, Int](1)
     
