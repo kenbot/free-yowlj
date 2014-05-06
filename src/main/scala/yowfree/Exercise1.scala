@@ -35,7 +35,7 @@ case class Return[F[_], +A](a: A) extends Free[F, A] {
 
 
 
-case class Suspend[F[_], A](ffa: F[Free[F, A]]) extends Free[F, A] {
+case class Suspend[F[_], A](next: F[Free[F, A]]) extends Free[F, A] {
   /**
    * Exercise 1b.
    * Implement flatMap and map for Suspend. 
@@ -44,8 +44,9 @@ case class Suspend[F[_], A](ffa: F[Free[F, A]]) extends Free[F, A] {
    * 
    * You have only:
    *  - this: Free[F,A]
-   *  - ffa: F[Free[F,A]]
-   *  - ffa.map: F[Free[F,A]] => (Free[F,A] => B) => F[B]
+   *  - next: F[Free[F,A]]
+   *  - next.map: F[Free[F,A]] => (Free[F,A] => B) => F[B]
+   *  - f: A => Free[F,B]
    *  - this.flatMap: Free[F,A] => (A => Free[F, B]) => Free[F, B]
    *  - this.map: Free[F,A] => (A => B) => Free[F, B]
    *  - Suspend: F[Free[F,A]] => Free[F,A]
@@ -53,10 +54,10 @@ case class Suspend[F[_], A](ffa: F[Free[F, A]]) extends Free[F, A] {
    * 
    */
   override def flatMap[B](f: A => Free[F, B])
-                         (implicit F: Functor[F]): Free[F, B] = Suspend(ffa map (_ flatMap f))
+                         (implicit F: Functor[F]): Free[F, B] = Suspend(next map (_ flatMap f))
                          
   override def map[B](f: A => B)
-                     (implicit F: Functor[F]): Free[F, B] = Suspend(ffa map (_ map f))
+                     (implicit F: Functor[F]): Free[F, B] = Suspend(next map (_ map f))
 }
 
 object Free {

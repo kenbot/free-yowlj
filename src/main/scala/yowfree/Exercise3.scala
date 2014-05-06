@@ -1,80 +1,139 @@
-package kenbot.free
+package yowfree
 
-import scalaz._
-import Scalaz._
-import Free._
+import scalaz.Functor
+import yowfree.Free.liftF
 import scala.collection.mutable
 
 // This example is based off the one in Runar Bjarnason's "Dead Simple Dependency Injection" talk.
+// Highly recommended viewing.
+//
 // http://www.youtube.com/watch?v=ZasXwtTRkio
 
 
-// 0. Fantasy API
-// def put(key: String, value: String): Unit
-// def get(key: String): String
-// def delete(key: String): Unit
+case class Key(id: String)
 
+case class Value(value: String) {
+    
+  def +(amount: Int): Value = 
+    Value((value.toInt + amount).toString)
+}
 
-// 1. ADT
-sealed trait KVS[+Next]
-case class Put[Next](key: String, value: String, next: Next) extends KVS[Next]     // <----  def put(key: String, value: String): Unit
-case class Get[Next](key: String, onResult: String => Next) extends KVS[Next]      // <----  def get(key: String): String
-case class Delete[Next](key: String, next: Next) extends KVS[Next]                 // <----  def delete(key: String): Unit
+/**
+ * Exercise 3a.
+ * Implement ADT cases as subtypes of KVS, based on the following commands:
+ * 
+ * def put(key: Key, value: Value): Unit
+ * def get(key: Key): Value
+ * def delete(key: Key): Unit
+ * 
+ * Be careful with Get -- how is it different to Put and Delete?
+ * How will the "Next" type parameter be used?
+ * 
+ */
+case class Put[Next](key: Key, value: Value, next: Next) extends KVS[Next] // implement me
+case class Get[Next](key: Key, nextF: Value => Next) extends KVS[Next] // implement me
+case class Delete[Next](key: Key, next: Next) extends KVS[Next] // implement me
 
+// ADT translation of fantasy API
+sealed trait KVS[+Next] {
+  
+  /**
+   * Exercise 3b. Implement map, so KVS can be a functor.
+   */
+  def map[B](f: Next => B): KVS[B] = ???
+}
 
 object KVS {
   type Script[A] = Free[KVS, A]
   
-  // 2. Functor definition
   implicit val functor: Functor[KVS] = new Functor[KVS] {
-    def map[A,B](kvs: KVS[A])(f: A => B): KVS[B] = kvs match {
-      case Put(key, value, next) => Put(key, value, f(next))
-      case Get(key, onResult) => Get(key, onResult andThen f)
-      case Delete(key, next) => Delete(key, f(next))
+    def map[A,B](kvs: KVS[A])(f: A => B): KVS[B] = kvs map f
+  }
+  
+  
+  /** 
+   *  Exercise 3c. 
+   *  
+   *  Implement functions that take regular input, but return
+   *  KVS instances lifted into the Free monad.
+   *  
+   */
+  def put(key: Key, value: Value): Script[Unit] = liftF(???)
+  
+  def get(key: Key): Script[Value] = ???
+  
+  def delete(key: Key): Script[Unit] = ???
+  
+  
+  // Now we can write pure scripts using free monads!  Naturally, we'll exercise great
+  // restraint with our newfound powers.
+  
+  
+  val larceny: Script[Unit] = for {
+    accountId <- get(Key("swiss-bank-account-id"))
+    accountKey = Key(accountId.value)
+    amount <- get(accountKey)                //  Combine these 2 lines, using "modify".
+    _ <- put(accountKey, amount + 1000000)   // 
+    _ <- put(Key("bermuda-airport"), Value("getaway car"))
+    _ <- delete(Key("tax-records"))
+  } yield ()
+  
+  
+  /**
+   * Exercise 3d. 
+   * 
+   * It's a bit tiresome to write get-and-put every time we want to 
+   * steal large sums of money and skip the country.
+   * 
+   * Write a composite function "modify", that Gets the value 
+   * of the key, applies the modification and Puts it back to the store.
+   * 
+   * Change the "larceny" script, so it uses "modify" rather than get-and-put 
+   * to modify the account balance.
+   * 
+   */
+  def modify(key: Key, f: Value => Value): Script[Unit] = ???
+  
+  
+  
+  /**
+   * Exercise 3e.
+   * 
+   * Write an interpreter, that recursively accumulates results into the immutable Map, returning the 
+   * final result. 
+   * 
+   * Get, Put, and Delete should all do what you would expect. 
+   *  
+   * Hint: Pattern matching
+   */
+  def interpretPure(script: Script[Unit], dataStore: Map[Key, Value]): Map[Key, Value] = script match {
+    case Suspend(Get(key, nextF)) => interpretPure(nextF(dataStore(key)), dataStore)
+    case Suspend(Put(key, value, next)) => interpretPure(next, dataStore + (key -> value))
+    case Suspend(Delete(key, next)) => interpretPure(next, dataStore - key)
+    case Return(_) => dataStore 
+  }
+
+  
+  /**
+   * Exercise 3f.
+   * 
+   * Write an interpreter, that reads each instruction in the script and 
+   * mutates the given data store in place, returning unit.
+   * 
+   * Get, Put and Delete should all do what you what expect.
+   */
+  def interpretImpure(script: Script[Unit], dataStore: mutable.Map[Key, Value]): Unit = {
+    def interpretKVS[A](kvs: KVS[Script[A]]): Script[A] = kvs match {
+      case Get(key, onResult) => onResult(dataStore(key))
+      case Put(key, value, next) => dataStore += (key -> value); next
+      case Delete(key, next) => dataStore -= key; next
+    }
+    
+    def interpretFree[A](script: Script[KVS[Script[A]]]): Unit = script match {
+      case Suspend(kvs) => interpretFree(interpretKVS(kvs))
+      case Return(_) => ()
     }
   }
-  
-  // 3. Lifting functions
-  def put(key: String, value: String): Script[Unit] = liftF( Put(key, value, ()) )
-  
-  def get(key: String): Script[String] = liftF(Get(key, identity))
-  
-  def delete(key: String): Script[Unit] = liftF(Delete(key, ()))
-  
-  
-  // 4. Composite functions
-  def modify(key: String, f: String => String): Free[KVS, Unit] = for { 
-    v <- get(key)
-    _ <- put(key, f(v))
-  } yield ()
-
-  
-  // 5. Write scripts
-  val script: Free[KVS, Unit] = for {
-    id <- get("swiss-bank-account-id")
-    _ <- modify(id, (_ + 1000000))
-    _ <- put("bermuda-airport", "getaway car")
-    _ <- delete("tax-records")
-  } yield ()
-
-  
-  // 6. Interpreters
-  
-  // Building an immutable structure
-  def interpretPure(kvs: Script[Unit], table: Map[String, String] = Map.empty): Map[String, String] = kvs.resume.fold({
-    case Get(key, onResult) => interpretPure(onResult(table(key)), table)
-    case Put(key, value, next) => interpretPure(next, table + (key -> value))
-    case Delete(key, next) => interpretPure(next, table - key)
-  }, _ => table)
-
-  
-  // Directly running effects
-  def interpretImpure(kvs: Script[Unit], table: mutable.Map[String, String]): Unit = kvs.go {
-    case Get(key, onResult) => onResult(table(key))
-    case Put(key, value, next) => table += (key -> value); next
-    case Delete(key, next) => table -= key; next
-  }
-  
 }
 
 
