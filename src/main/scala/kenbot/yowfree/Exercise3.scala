@@ -1,7 +1,7 @@
-package yowfree
+package kenbot.yowfree
 
+import kenbot.yowfree.Free.liftF;
 import scalaz.Functor
-import yowfree.Free.liftF
 import scala.collection.mutable
 
 // This example is based off the one in Runar Bjarnason's "Dead Simple Dependency Injection" talk.

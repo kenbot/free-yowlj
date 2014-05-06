@@ -1,8 +1,10 @@
-package yowfree
+package kenbot.yowfree
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSpec
 import scala.collection.mutable
+
+import org.scalatest.FunSpec
+import org.scalatest.matchers.ShouldMatchers
+
 import KVS._
 
 class Exercise3Test extends FunSpec with ShouldMatchers {

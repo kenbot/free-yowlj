@@ -1,4 +1,4 @@
-
+package kenbot
 package yowfree {
   
   case class Box[A](a: A) {

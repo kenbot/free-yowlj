@@ -22,8 +22,6 @@ object EvenOddNaughtyRecursion extends EvenProgram {
 }
 
 
-
-
 object EvenOddRighteousTrampoline extends EvenProgram {
   def odd[A](list: Stream[A]): Trampoline[Boolean] = list match {
     case a #:: as => Suspend(() => even(as))

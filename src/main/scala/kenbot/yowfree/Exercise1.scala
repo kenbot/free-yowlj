@@ -1,4 +1,4 @@
-package yowfree
+package kenbot.yowfree
 
 import scalaz._
 import Scalaz._

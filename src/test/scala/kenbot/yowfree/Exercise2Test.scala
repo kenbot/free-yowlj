@@ -1,8 +1,14 @@
-package yowfree
+package kenbot.yowfree
 
-import Trampolines._
-import org.scalatest.matchers.ShouldMatchers
+import scala.annotation.tailrec
+
 import org.scalatest.FunSpec
+import org.scalatest.matchers.ShouldMatchers
+
+import ListAppendRighteousTrampoline.runSolution
+import Trampolines.Trampoline
+import Trampolines.runTrampoline
+import kenbot.yowfree.Trampolines.Trampoline
 
 object EvenOdd {
   def even[A](list: List[A]): Trampoline[Boolean] = list match {
@@ -18,6 +24,7 @@ object EvenOdd {
 
 
 class Exercise2Test extends FunSpec with ShouldMatchers {
+
 
   import Trampolines._
   
@@ -36,7 +43,7 @@ class Exercise2Test extends FunSpec with ShouldMatchers {
   }
   
   describe("The trampolined solution") {
-    import ListAppendRighteousTrampoline.runSolution
+import ListAppendRighteousTrampoline.runSolution
     it("shouldn't blow the stack") {
       runSolution((1 to 9999).toList, (10000 to 20000).toList)
     }

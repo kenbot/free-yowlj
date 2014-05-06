@@ -1,4 +1,4 @@
-package yowfree
+package kenbot.yowfree
 
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers

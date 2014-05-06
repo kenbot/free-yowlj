@@ -1,4 +1,4 @@
-package yowfree
+package kenbot.yowfree
 
 import scala.annotation.tailrec
 import Trampolines._
