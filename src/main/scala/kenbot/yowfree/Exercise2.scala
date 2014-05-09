@@ -7,6 +7,7 @@ object ListAppendNaughtyRecursion extends ListAppendProgram {
   
   /**
    * Overflows the stack for large lists, because the algorithm is not tail-recursive.
+   * Try running it with "sbt run" -- KABLAMMO!
    */
   def listAppend[A](list1: List[A], list2: List[A]): List[A] = list1 match {
     case Nil => list2
@@ -29,6 +30,10 @@ object Trampolines {
    * Exercise 2a. 
    * 
    * Write an interpreter for trampolines. 
+   * 
+   * Hint: Remember that Trampoline[A] is Free[Function0, A] -- there are only 2 things we can do 
+   * with a Free -- flatMap, because it is a monad, and pattern matching, which can destructure it
+   * into Suspend or Return.
    */
   //@tailrec
   final def runTrampoline[A](trampoline: Trampoline[A]): A = ???
@@ -42,6 +47,11 @@ object ListAppendRighteousTrampoline extends ListAppendProgram {
    * 
    * Implement the same algorithm, this time using a trampoline instead.  
    * This should get the same result, but not blow the stack.
+   * 
+   * Hint:
+   * This is a simple mechanical translation of the original algorithm. 
+   * Consider: the algorithm has 2 cases, one to recurse, and one to terminate and return.
+   * A Free also has 2 cases: Suspend which recurses, and Return which terminates and returns.
    * 
    */
   def listAppend[A](list1: List[A], list2: List[A]): Trampoline[List[A]] = ???

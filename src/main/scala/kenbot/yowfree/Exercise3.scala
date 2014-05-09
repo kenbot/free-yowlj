@@ -18,6 +18,7 @@ case class Value(value: String) {
     Value((value.toInt + amount).toString)
 }
 
+
 /**
  * Exercise 3a. Instruction set
  * 
@@ -27,9 +28,20 @@ case class Value(value: String) {
  * def get(key: Key): Value
  * def delete(key: Key): Unit
  * 
- * Be careful with Get -- how is it different to Put and Delete?
- * How will the "Next" type parameter be used?
+ * There is a simple mechanical translation from here to an ADT:
+ * - Arguments in the function become arguments in the data case
  * 
+ * - A return type of Unit is represented as a Next value. The interpreter, 
+ *   when it's gone and done its nasty effectful business, can continue with this value.
+ *   
+ * - Any other return type R is represented as a function R => Next. Why? It's like we're asking
+ *   the interpreter for a value; if it fishes out an R value from effect-land, 
+ *   then it can plug it in and continue.
+ * 
+ * eg.  def foo(b: Banana): Tangerine =====> case class Foo[A](b: Banana, f: Tangerine => A)
+ *      def squish(b: Banana): Unit   =====> case class Squish[A](b: Banana, next: A)
+ *      def pluck(): Durian           =====> case class Pluck[A](f: Durian => A)
+ *
  */
 case class Get[Next] // implement me
 case class Put[Next] // implement me
@@ -40,6 +52,8 @@ sealed trait KVS[+Next] {
   
   /**
    * Exercise 3b. Implement map, so KVS can be a functor.
+   * 
+   * This is also a boring mechanical translation of the data cases.  
    */
   def map[B](f: Next => B): KVS[B] = ???
 }
@@ -57,6 +71,15 @@ object KVS {
    *  
    *  Implement functions that take regular input, but return
    *  KVS instances lifted into the Free monad.
+   *  
+   *  Again, this is a boring mechanical translation of our original DSL functions.
+   *  
+   *  Consider:
+   *  - What functions do we already know that can lift a functor into the Free monad?
+   *  - For Unit-returning functions like delete(), what can we pass into the "Next" slot
+   *    to make it type-check as a Script[Unit]?
+   *  - For value-returning functions like get(), what can we pass into the "Value => Next" slot
+   *    to make Script[Value] typecheck?
    *  
    */
   def get(key: Key): Script[Value] = ???
